@@ -1,67 +1,64 @@
-import * as THREE from "three";
-import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import { FontLoader } from "three/examples/jsm/loaders/FontLoader.js";
-import { TextGeometry } from "three/examples/jsm/geometries/TextGeometry.js";
+async function init() {
+  const THREE = await import("three");
+  const { OrbitControls } = await import("three/addons/controls/OrbitControls.js");
+  const { FontLoader } = await import("three/examples/jsm/loaders/FontLoader.js");
+  const { TextGeometry } = await import("three/examples/jsm/geometries/TextGeometry.js");
 
-// Initialize the scene
-const scene = new THREE.Scene();
-scene.background = new THREE.Color("black");
+  // Initialize the scene
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color("black");
 
-// Initialize the renderer
-const canvas = document.querySelector("canvas.threejs");
-const renderer = new THREE.WebGLRenderer({
-  canvas: canvas,
-  antialias: true,
-});
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(window.devicePixelRatio);
-
-// Initialize the camera
-const camera = new THREE.PerspectiveCamera(
-  35,
-  window.innerWidth / window.innerHeight,
-  0.1,
-  200
-);
-camera.position.z = 15;
-
-// Add lighting
-const ambientLight = new THREE.AmbientLight("white", 0.5);
-scene.add(ambientLight);
-
-const pointLight = new THREE.PointLight("white", 2);
-pointLight.position.set(5, 10, 5);
-scene.add(pointLight);
-
-// Add orbit controls
-const controls = new OrbitControls(camera, canvas);
-controls.enableDamping = true;
-
-// Create 3D "Happy New Year" text
-const fontLoader = new FontLoader();
-fontLoader.load("https://threejs.org/examples/fonts/helvetiker_regular.typeface.json", (font) => {
-  const textGeometry = new TextGeometry("Work IN Progress", {
-    font: font,
-    size: 1,
-    height: 0.3,
-    curveSegments: 12,
-    bevelEnabled: true,
-    bevelThickness: 0.05,
-    bevelSize: 0.03,
-    bevelSegments: 5,
+  // Initialize the renderer
+  const canvas = document.querySelector("canvas.threejs");
+  const renderer = new THREE.WebGLRenderer({
+    canvas: canvas,
+    antialias: true,
   });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(window.devicePixelRatio);
 
-  const textMaterial = new THREE.MeshStandardMaterial({
-    color: "gold",
-    metalness: 1,
-    roughness: 0.1,
-    emissive: new THREE.Color("yellow"),
-    emissiveIntensity: 0.6,
+  // Initialize the camera
+  const camera = new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, 0.1, 200);
+  camera.position.z = 15;
+
+  // Add lighting
+  const ambientLight = new THREE.AmbientLight("white", 0.5);
+  scene.add(ambientLight);
+
+  const pointLight = new THREE.PointLight("white", 2);
+  pointLight.position.set(5, 10, 5);
+  scene.add(pointLight);
+
+  // Add orbit controls
+  const controls = new OrbitControls(camera, canvas);
+  controls.enableDamping = true;
+
+  // Load font dynamically
+  const fontLoader = new FontLoader();
+  fontLoader.load("https://threejs.org/examples/fonts/helvetiker_regular.typeface.json", (font) => {
+    const textGeometry = new TextGeometry("Work IN Progress", {
+      font: font,
+      size: 1,
+      height: 0.3,
+      curveSegments: 12,
+      bevelEnabled: true,
+      bevelThickness: 0.05,
+      bevelSize: 0.03,
+      bevelSegments: 5,
+    });
+
+    const textMaterial = new THREE.MeshStandardMaterial({
+      color: "gold",
+      metalness: 1,
+      roughness: 0.1,
+      emissive: new THREE.Color("yellow"),
+      emissiveIntensity: 0.6,
+    });
+
+    const textMesh = new THREE.Mesh(textGeometry, textMaterial);
+    textGeometry.center();
+    scene.add(textMesh);
   });
-
-  const textMesh = new THREE.Mesh(textGeometry, textMaterial);
-  textGeometry.center();
-  scene.add(textMesh);
 
   // Add particle effects
   const particlesGeometry = new THREE.BufferGeometry();
@@ -82,7 +79,7 @@ fontLoader.load("https://threejs.org/examples/fonts/helvetiker_regular.typeface.
   const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
   scene.add(particlesMesh);
 
-  // Add some dumb objects
+  // Add rotating objects
   const boxGeometry = new THREE.BoxGeometry(1, 1, 1);
   const sphereGeometry = new THREE.SphereGeometry(0.5, 32, 32);
 
@@ -97,34 +94,28 @@ fontLoader.load("https://threejs.org/examples/fonts/helvetiker_regular.typeface.
   sphereMesh.position.set(3, -1, 2);
   scene.add(sphereMesh);
 
-  // Animate the particles and objects
+  // Animation Loop
   const clock = new THREE.Clock();
-  const animateScene = () => {
+  const renderLoop = () => {
     const elapsedTime = clock.getElapsedTime();
     particlesMesh.rotation.y = elapsedTime * 0.1;
     particlesMesh.rotation.x = elapsedTime * 0.05;
-
     boxMesh.rotation.x = elapsedTime * 0.5;
     boxMesh.rotation.y = elapsedTime * 0.5;
-
     sphereMesh.rotation.y = elapsedTime * 0.5;
     sphereMesh.rotation.z = elapsedTime * 0.5;
-  };
-
-  // Render loop
-  const renderLoop = () => {
     controls.update();
-    animateScene();
     renderer.render(scene, camera);
     requestAnimationFrame(renderLoop);
   };
-
   renderLoop();
-});
 
-// Handle window resize
-window.addEventListener("resize", () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
-});
+  // Handle window resize
+  window.addEventListener("resize", () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+}
+
+init();
